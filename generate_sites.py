@@ -42,30 +42,28 @@ def generate_site(tutor, subject_type="math"):
     
     first_name = name.split()[0] if name.split() else name
     
-    # === ФОТО С РАМКОЙ-ТРАНСПОРТИРОМ ===
     avatar_html = ''
     if avatar_img and not pd.isna(avatar_img) and str(avatar_img).strip():
-        avatar_html = f'''
-        <div class="tutor-avatar-wrapper">
-            <img src="{avatar_img}" alt="Фото {name}" class="tutor-avatar">
-        </div>
-        '''
+        avatar_html = f'<img src="{avatar_img}" alt="Фото {name}" class="tutor-avatar">'
     else:
         initials = first_name[0]
         if len(name.split()) > 1:
             initials += name.split()[1][0]
         avatar_html = f'<div class="tutor-avatar-placeholder">{initials.upper()}</div>'
     
-    # === ПАРСИНГ УСЛУГ ===
+    # === ПАРСИНГ УСЛУГ (УЛУЧШЕННЫЙ) ===
     services_list = []
     if services and not pd.isna(services):
         raw = str(services)
+        # Убираем лишние пробелы и переносы
         raw = re.sub(r'\s+', ' ', raw)
+        # Пробуем разные разделители
         if ' | ' in raw:
             parts = raw.split(' | ')
         elif '|' in raw:
             parts = raw.split('|')
         else:
+            # Если нет разделителей, ищем по ключевым словам
             parts = re.split(r'\s+(?=\w+:)', raw)
         
         for item in parts:
@@ -74,6 +72,7 @@ def generate_site(tutor, subject_type="math"):
                 if not any(existing == item for existing in services_list):
                     services_list.append(item)
     
+    # Убираем дубликаты
     seen = set()
     services_list = [x for x in services_list if not (x in seen or seen.add(x))]
 
@@ -219,48 +218,14 @@ def generate_site(tutor, subject_type="math"):
             line-height: 1.7;
             margin-bottom: 20px;
         }}
-        
-        /* ===== ТРАНСПОРТИР ДЛЯ ФОТО И ЗАГЛУШКИ ===== */
-        .tutor-avatar-wrapper {{
-            position: relative;
-            width: 120px;
-            height: 120px;
-            flex-shrink: 0;
-        }}
         .tutor-avatar {{
             width: 120px;
             height: 120px;
             border-radius: 50%;
+            border: 3px solid {button_color};
             object-fit: cover;
             flex-shrink: 0;
-            border: 3px solid {button_color};
         }}
-        /* Рамка-транспортир поверх фото */
-        .tutor-avatar-wrapper::before {{
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: calc(100% + 8px);
-            height: calc(100% + 8px);
-            border: 3px solid {button_color};
-            border-radius: 50%;
-            clip-path: polygon(
-                0% 100%,
-                4% 85%,
-                12% 60%,
-                25% 38%,
-                50% 22%,
-                75% 38%,
-                88% 60%,
-                96% 85%,
-                100% 100%
-            );
-            pointer-events: none;
-            z-index: 2;
-        }}
-        
-        /* Заглушка (инициалы) — тоже с транспортиром */
         .tutor-avatar-placeholder {{
             width: 120px;
             height: 120px;
@@ -274,32 +239,7 @@ def generate_site(tutor, subject_type="math"):
             font-size: 48px;
             font-weight: 700;
             flex-shrink: 0;
-            position: relative;
         }}
-        .tutor-avatar-placeholder::before {{
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            width: calc(100% + 8px);
-            height: calc(100% + 8px);
-            border: 3px solid {button_color};
-            border-radius: 50%;
-            clip-path: polygon(
-                0% 100%,
-                4% 85%,
-                12% 60%,
-                25% 38%,
-                50% 22%,
-                75% 38%,
-                88% 60%,
-                96% 85%,
-                100% 100%
-            );
-            pointer-events: none;
-            z-index: 2;
-        }}
-        
         .tutor-info {{
             display: flex;
             align-items: center;
@@ -480,7 +420,7 @@ def generate_site(tutor, subject_type="math"):
             .notebook {{ padding: 20px 16px; }}
             .header {{ flex-direction: column; align-items: flex-start; }}
             .services {{ grid-template-columns: 1fr; }}
-            .tutor-avatar-wrapper, .tutor-avatar, .tutor-avatar-placeholder {{ width: 80px; height: 80px; font-size: 32px; }}
+            .tutor-avatar, .tutor-avatar-placeholder {{ width: 80px; height: 80px; font-size: 32px; }}
             .service-item span {{ font-size: 13px; }}
             .service-item .cost {{ font-size: 13px; }}
         }}
